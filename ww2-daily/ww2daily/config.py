@@ -52,6 +52,18 @@ ONWAR_URL_TEMPLATE = "https://www.onwar.com/wwii/chronology/{yyyymm}.html"
 # ww2db: «в этот день» по всем военным годам.
 WW2DB_URL_TEMPLATE = "https://ww2db.com/event/today/{mm}/{dd}/{year}"
 
+# --- Airtable (для разовой миграции истории и pageId) -------------------------
+# base/table взяты из текущего сценария make.com. Имена полей в этой таблице
+# исторически хранят: "Post" = английский post_x; "Title"/title_rus = подпись к фото;
+# плюс дата и pageId. Длинный русский post_tg в Airtable НЕ сохранялся — поэтому из
+# миграции восстанавливаем главное: использованные pageId (антиповтор фото) + темы.
+AIRTABLE_BASE = "appLeMglWrKtgCBh7"
+AIRTABLE_TABLE = "tblyF452mZzF1sCq1"
+AIRTABLE_FIELD_DATE = "fld9O7ImE9qFDApuU"     # date_today (текст DD.MM.YYYY)
+AIRTABLE_FIELD_POST_X = "fldG018noovJxFBO9"   # английский короткий пост
+AIRTABLE_FIELD_PAGEID = "fldZKiJ9nPEDral8W"   # pageId фото на Commons
+AIRTABLE_FIELD_CAPTION = "fldmLFpu0HZJJa8SZ"  # русская подпись к фото (title_rus)
+
 # --- Файлы --------------------------------------------------------------------
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HISTORY_PATH = os.path.join(ROOT, "state", "history.json")

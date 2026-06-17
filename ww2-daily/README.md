@@ -70,19 +70,27 @@ Setup-скрипт среды: `pip install -r requirements.txt`.
 ## Локальная проверка
 
 ```bash
-python -m tests.test_offline                 # логика без сети
-python -m ww2daily.fetch_sources             # нужен доступ к сети
+python -m tests.test_offline                       # логика без сети
+python -m ww2daily.fetch_sources                   # сегодня (нужна сеть)
+python -m ww2daily.fetch_sources --today 2026-06-22  # тест/бэкфилл конкретной даты
 python -m ww2daily.find_photos "Narvik battle 1940" "Battle of Narvik"
-python -m ww2daily.publish --dry-run         # проверить длины, ничего не публикуя
+python -m ww2daily.publish --dry-run               # проверить длины, ничего не публикуя
 ```
 
 ## Миграция истории из Airtable (рекомендуется до первого запуска)
 
 Чтобы фото не повторялись с уже опубликованными и у модели был контекст, засей
 `state/history.json` из текущей таблицы Airtable
-(`base appLeMglWrKtgCBh7 / table tblyF452mZzF1sCq1`): перенеси прошлые посты в
-`posts[]` и все использованные `pageId` в `used_page_ids[]`. Скрипт миграции добавлю
-после получения `AIRTABLE_PAT`.
+(`base appLeMglWrKtgCBh7 / table tblyF452mZzF1sCq1`):
+
+```bash
+AIRTABLE_PAT=... python -m ww2daily.migrate_airtable --dry-run   # посмотреть, что соберётся
+AIRTABLE_PAT=... python -m ww2daily.migrate_airtable             # записать в history.json
+```
+
+Скрипт восстанавливает использованные `pageId` (антиповтор фото) и темы прошлых постов.
+Длинный русский `post_tg` в Airtable исторически не сохранялся, поэтому из миграции он не
+восстанавливается — но для антиповтора это и не нужно.
 
 ## Лимиты длины (зашиты в `ww2daily/config.py`)
 

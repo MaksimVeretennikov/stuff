@@ -138,8 +138,8 @@ def history_context(hist: dict) -> dict:
 # --- main ---------------------------------------------------------------------
 
 
-def build_brief() -> dict:
-    td = TargetDate()
+def build_brief(td: TargetDate | None = None) -> dict:
+    td = td or TargetDate()
     hist = load_history()
     sources = {
         "onwar": source_onwar(td),
@@ -156,9 +156,18 @@ def build_brief() -> dict:
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    import argparse
+    import datetime as _dt
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--today", help="дата запуска YYYY-MM-DD (для теста/бэкфилла); по умолчанию сегодня МСК")
+    args = ap.parse_args(argv)
+    td = None
+    if args.today:
+        td = TargetDate(_dt.datetime.fromisoformat(args.today))
+
     os.makedirs(config.BUILD_DIR, exist_ok=True)
-    brief = build_brief()
+    brief = build_brief(td)
     with open(config.DAILY_BRIEF_PATH, "w", encoding="utf-8") as f:
         json.dump(brief, f, ensure_ascii=False, indent=2)
     print(f"Дата: {brief['date']['human_ru']}")

@@ -73,6 +73,41 @@ def test_photo_dedup_and_year(monkeypatched=None):
     assert cands[0]["description"] == "German troops"
 
 
+def test_target_date_override():
+    import datetime as dt
+    from ww2daily.dates import TargetDate
+    td = TargetDate(dt.datetime(2026, 6, 22, 9, 30))
+    assert td.human_ru == "22 июня 1941", td.human_ru
+    assert td.year == 1941 and td.month == 6 and td.day == 22
+
+
+def test_migration_record_and_history():
+    from ww2daily import migrate_airtable as mig
+    from ww2daily import config
+    rec_fields = {
+        config.AIRTABLE_FIELD_DATE: "17.06.2026",
+        config.AIRTABLE_FIELD_POST_X: "June 17, 1941 — Hitler sets the date.",
+        config.AIRTABLE_FIELD_CAPTION: "Гитлер на совещании, 1941",
+        config.AIRTABLE_FIELD_PAGEID: "12345",
+    }
+    p = mig.record_to_post(rec_fields)
+    assert p["date_ww2"] == "17.06.1941", p["date_ww2"]
+    assert p["image_pageid"] == 12345
+    assert p["title"].startswith("Гитлер")
+
+    records = [
+        {"fields": {config.AIRTABLE_FIELD_DATE: "18.06.2026",
+                    config.AIRTABLE_FIELD_PAGEID: "222"}},
+        {"fields": {config.AIRTABLE_FIELD_DATE: "17.06.2026",
+                    config.AIRTABLE_FIELD_PAGEID: "111"}},
+        {"fields": {config.AIRTABLE_FIELD_DATE: "19.06.2026",
+                    config.AIRTABLE_FIELD_PAGEID: "111"}},  # дубль pageId
+    ]
+    hist = mig.build_history(records)
+    assert hist["used_page_ids"] == [111, 222], hist["used_page_ids"]  # уникальные, по порядку дат
+    assert [p["date_ww2"] for p in hist["posts"]] == ["17.06.1941", "18.06.1941", "19.06.1941"]
+
+
 def run():
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for fn in fns:
